@@ -46,10 +46,8 @@ Defaults: all sites, the last 7 calendar days through today, UTC, both dates inc
 
 ## Hosting
 
-Gonzalo creates the database and service, enters env values in the hosting dashboard, and runs the migration by hand:
+The host is Vercel and the database is Neon. Vercel request logs record client IPs. The app stores none.
 
-```
-psql "$DATABASE_URL" -f migrations/001_events.sql
-```
+Set `DATABASE_URL` on Vercel to the pooled Neon connection string. Vercel sets `NODE_ENV`. Do not set `PORT`. The ingest pool uses at most one connection.
 
-Env vars: `DATABASE_URL`, `PORT`, `NODE_ENV`. Leave `NODE_ENV` unset in production. No host is chosen yet, so whether that host's request logs record IP addresses is unverified. This app does not log request IPs or bodies.
+Run migrations against the Neon direct connection string, then `\password visits_reader`. Put that role's connection string in `.env.prod-read`. Only `npm run visits:prod` reads that file. `npm run visits` keeps using the local database.

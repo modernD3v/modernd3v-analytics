@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node src/server.js",
     "visits": "node src/visits.js",
+    "visits:prod": "node scripts/visits-prod.js",
     "seed": "node src/seed.js",
     "test:silent": "node test/silent-failure.js"
   },

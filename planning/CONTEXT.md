@@ -19,21 +19,19 @@ This service answers one question: which channel sends people to a site. It is n
 
 Test origins (localhost, the Playwright page, the seeded second site) load only when `NODE_ENV` is exactly `development` or `test`. Unset or anything else means production, and production config has no test origins. `npm run seed` refuses a `DATABASE_URL` whose host is not `localhost` or `127.0.0.1`, and it checks before connecting.
 
+The host is Vercel and the database is Neon. Ingest uses the pooled connection string in `DATABASE_URL`, with a pool max of 1. Migrations and `scripts/check-reader-role.sql` use the direct string. `visits_reader` is created in SQL, not the Neon console, because a console role inherits `neon_superuser` and can write. `npm run visits:prod` is the only script that loads `.env.prod-read`, and that file holds the read-only connection.
+
 ## Tagging
 
 All lowercase. `utm_source`: `instagram`, `medium`, `linkedin`, `email`. `utm_medium` (the format, not Medium the platform): `post`, `story`, `bio`, `article`, `dm`. `utm_campaign`: `founding`, `module-one`, `free-chapter`. Medium the platform is `utm_source=medium`. Add values on purpose. The script groups on exact strings.
 
 ## Traps
 
-A check that never fires still passes a one-sided test. `sendBeacon` hides the response, so prove refusal on the server. `Origin` can be forged by non-browsers. The allowed list is not authentication. A site Content Security Policy may block the inline snippet or `connect-src`. Do not solve that here. No host is chosen, so whether hosting request logs record IPs is unverified. The app does not log request IPs or bodies.
+A check that never fires still passes a one-sided test. `sendBeacon` hides the response, so prove refusal on the server. `Origin` can be forged by non-browsers. The allowed list is not authentication. A site Content Security Policy may block the inline snippet or `connect-src`. Do not solve that here. Vercel request logs record client IPs. The app stores none. Locally, `neon_superuser` has no powers. The role check detects membership, not production safety. Gonzalo runs that check against production.
 
 ## Gonzalo, by hand
 
-Create the database and service. Set `DATABASE_URL` and `PORT` in the hosting dashboard. Leave `NODE_ENV` unset. Run:
-
-```
-psql "$DATABASE_URL" -f migrations/001_events.sql
-```
+Create the Neon database and the Vercel project. Set `DATABASE_URL` on Vercel to the pooled string. Vercel sets `NODE_ENV`. Do not set `PORT`. Run migrations 001 and 002 on the direct string, set the `visits_reader` password with `\password`, and run `scripts/check-reader-role.sql` on that same direct string. Put the read-only connection in `.env.prod-read`.
 
 ## Follow-up
 

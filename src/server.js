@@ -4,13 +4,10 @@ import { originsForEnv } from "./config.js";
 import { normalizeEvent } from "./normalize.js";
 
 const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) {
-  console.error("DATABASE_URL is required");
-  process.exit(1);
-}
-
 const origins = originsForEnv(process.env.NODE_ENV);
-const pool = new pg.Pool({ connectionString: databaseUrl });
+const pool = databaseUrl
+  ? new pg.Pool({ connectionString: databaseUrl, max: 1 })
+  : null;
 const app = express();
 
 app.disable("x-powered-by");
@@ -26,6 +23,10 @@ app.post("/e", async (req, res) => {
   const event = normalizeEvent(req.body);
   if (!event) {
     res.status(400).end();
+    return;
+  }
+  if (!pool) {
+    res.status(500).end();
     return;
   }
   try {
@@ -50,9 +51,17 @@ app.use((err, req, res, next) => {
   res.status(status === 413 ? 413 : 400).end();
 });
 
-const port = Number(process.env.PORT) || 3000;
-const server = app.listen(port, () => {
-  console.log("listening");
-});
+const isDirectRun = process.argv[1] && process.argv[1].endsWith("server.js");
+if (isDirectRun) {
+  if (!databaseUrl) {
+    console.error("DATABASE_URL is required");
+    process.exit(1);
+  }
+  const port = Number(process.env.PORT) || 3000;
+  const server = app.listen(port, () => {
+    console.log("listening");
+  });
+  server.on("close", () => pool.end());
+}
 
-server.on("close", () => pool.end());
+export default app;
