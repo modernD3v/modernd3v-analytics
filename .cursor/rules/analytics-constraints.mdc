@@ -1,0 +1,12 @@
+---
+description: Hard constraints for the modernd3v-analytics repo
+alwaysApply: true
+---
+
+- Scope: this service answers one question, which channel sends people to a site. Never build a dashboard, user accounts, auth for other sites, billing, cookies, localStorage or sessionStorage, fingerprinting, IP storage, or anything that identifies a person. If a task seems to need one, stop and say so.
+- The client snippet must never break the calling site: everything in try/catch, nothing thrown, nothing awaited, no render blocking, no retries, no dependencies.
+- Never ask for, print, or write a production DATABASE_URL or any key. Local development uses a local Postgres only. Gonzalo enters real values in the hosting dashboard by hand.
+- Proof, not assertion: every check or test gets broken on purpose and watched to fail.
+- Never touch the modernD3vforall repo from here.
+- No em dashes anywhere, including code comments and output strings. American spelling.
+- Read AGENTS.md and planning/CONTEXT.md (once it exists) before starting any task.
